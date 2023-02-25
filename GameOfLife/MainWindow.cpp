@@ -1,10 +1,16 @@
 #include "MainWindow.h"
+#include "SettingsUI.h"
 #include "Settings.h"
 #include "play.xpm"
+#include "set.xpm"
 #include "pause.xpm"
 #include "next.xpm"
 #include "trash.xpm"
+#include "random.xpm"
+#include "export.xpm"
+#include "import.xpm"
 #include "fstream"
+#include "wx/filedlg.h"
 #include <string>
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
@@ -13,6 +19,12 @@ EVT_MENU(10003, MainWindow::OnNextClick)
 EVT_MENU(10001, MainWindow::OnPlayClick)
 EVT_MENU(10002, MainWindow::OnPauseClick)
 EVT_MENU(10004, MainWindow::OnTrashClick)
+EVT_MENU(10006, MainWindow::OnSetClick)
+EVT_MENU(10007, MainWindow::OnRandomClick)
+EVT_MENU(wxID_SAVE, MainWindow::OnSaveClick)
+EVT_MENU(wxID_OPEN, MainWindow::OnLoadClick)
+//EVT_MENU(10011, MainWindow::OnSaveClick) // "Export"
+//EVT_MENU(10012, MainWindow::OnLoadClick) //"Import"
 EVT_TIMER(10005, MainWindow::Timer)
 
 
@@ -38,12 +50,20 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(15
 	wxBitmap pause(pause_xpm);
 	wxBitmap next(next_xpm);
 	wxBitmap trash(trash_xpm);
+	wxBitmap set(set_xpm);
+	wxBitmap random(random_xpm);
+	//wxBitmap save(export_xpm);
+	//wxBitmap load(import_xpm);
 
 	wxToolBar* toolBar = CreateToolBar();
 	toolBar->AddTool(10001, "Start", play, "Start"); //These will need to be changed from ID ANY
 	toolBar->AddTool(10002, "Pause", pause, "Pause");
 	toolBar->AddTool(10003, "Next", next, "Next");
+	toolBar->AddTool(10007, "Random", random, "Random");
 	toolBar->AddTool(10004, "Trash", trash, "Trash");
+	toolBar->AddTool(10006, "Settings", set, "Settings");
+	//toolBar->AddTool(10011, "Save", save, "Save");
+	//toolBar->AddTool(10012, "Load", load, "Load");
 
 	toolBar->Realize();
 
@@ -63,6 +83,13 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(15
 	_toroidal->SetCheckable(true);
 	viewMenu->Append(_toroidal);
 
+	wxMenuBar* menu = new wxMenuBar();
+	SetMenuBar(menu);
+	wxMenu* fileMenu = new wxMenu();
+	fileMenu->Append(wxID_OPEN);
+	fileMenu->Append(wxID_SAVE);
+	menu->Append(fileMenu, "Save/Load");
+
 	GridInit();
 	this->Layout();
 }
@@ -73,55 +100,94 @@ void MainWindow::OnResize(wxSizeEvent& resizeEvent) {
 	resizeEvent.Skip();
 }
 
+void MainWindow::OnRandomClick(wxCommandEvent& event) {
 
-//void MainWindow::OnSaveClick(wxCommandEvent& event) {
-//	wxFileDialog file(this, "Save Board", wxEmptyString, wxEmptyString, "Game of Life Board file", )
-//		if (file.ShowModal() == wxID_CANCEL)
-//		{
-//			return;
-//		}
-//		std::ofstream fileStream;
-//		fileStream.open((std::string)wxFileDialog.GetPath());
-//		if (fileStream.is_open())
-//		{
-//			for (int i = 0; i < matrix.size(); i++)
-//			{
-//				for (int j = 0; j < matrix.size(); j++)
-//				{
-//					if (matrix[i][j])
-//					{
-//						fileStream << '*';
-//					}
-//					else
-//					{
-//						fileStream << '.';
-//					}
-//				}
-//				fileStream << '\n';
-//			}
-//
-//			fileStream.close();
-//		}
-//
-//	event.Skip();
-//}
+	RandomizeMatrix();
+	event.Skip();
+}
 
-//void MainWindow::OnLoadClick(wxCommandEvent& event) {
-//
-//
-//
-//	std::ifstream fileStream;
-//	if (fileStream.is_open())
-//	{
-//		while (!fileStream.eof())
-//		{
-//
-//		}
-//		fileStream.close();
-//	}
-//
-//	event.Skip();
-//}
+void MainWindow::OnSaveClick(wxCommandEvent& event) {
+	wxFileDialog fileDialog(this, "Save Current Universe", "", "", "Game of Life File (*.cells) | *.cells", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (fileDialog.ShowModal() == wxID_CANCEL)
+	{
+		return;
+	}
+
+	std::ofstream output;
+	output.open((std::string)fileDialog.GetPath());
+	if (output.is_open())
+	{
+		for (int i = 0; i < matrix.size(); i++)
+		{
+			for (int j = 0; j < matrix[i].size(); j++)
+			{
+				if (matrix[i][j]) {
+					output << '*';
+				}
+				else {
+					output << '.';
+				}
+			}
+			output << '\n';
+		}
+
+		output.close();
+	}
+
+	event.Skip();
+}
+
+void MainWindow::OnLoadClick(wxCommandEvent& event) {
+	wxFileDialog fileDialog(this, "Load Stored Universe", "", "", "Game of Life File (*.cells) | *.cells", wxFD_OPEN);
+	if (fileDialog.ShowModal() == wxID_CANCEL)
+	{
+		return;
+	}
+	for (int i = 0; i < matrix.size(); i++)
+	{
+		matrix[i].clear();
+		matrix.resize(0);
+	}
+	matrix.clear();
+	matrix.resize(0);
+
+	std::string buff;
+
+	std::ifstream input;
+	int ndx = 0;
+	input.open((std::string)fileDialog.GetPath());
+	if (input.is_open()) {
+		while (!input.eof())
+		{
+			std::getline(input, buff);
+			if (buff.size() == 0)
+			{
+				break;
+			}
+			if (matrix.size() == 0)
+			{
+				matrix.resize(buff.size());
+			}
+			matrix[ndx].resize(buff.size());
+			for (int i = 0; i < buff.size(); i++)
+			{
+				if (buff[i] == '*')
+				{
+					matrix[ndx][i] = true;
+				}
+				else
+				{
+					matrix[ndx][i] = false;
+				}
+			}
+			ndx++;
+		}
+
+		input.close();
+	}
+
+	event.Skip();
+}
 
 
 void MainWindow::OnPlayClick(wxCommandEvent& evnet)
@@ -130,13 +196,20 @@ void MainWindow::OnPlayClick(wxCommandEvent& evnet)
 
 }
 
+void MainWindow::OnSetClick(wxCommandEvent& event) {
+	SettingsUI* dialog = new SettingsUI(this, settings);
+	dialog->ShowModal();
+
+	event.Skip();
+}
+
 void MainWindow::OnTrashClick(wxCommandEvent& event) {
 	matrix.clear();
 	GridInit();
 	draw->Refresh();
 	generations = 0;
 	event.Skip();
-	
+
 }
 
 void MainWindow::OnPauseClick(wxCommandEvent& event) {
@@ -165,8 +238,6 @@ void MainWindow::GridInit() {
 int MainWindow::NeighborCount(int row, int col) {
 
 	int count = 0;
-	//row = settings->s_gridsize;
-	//col = settings->s_gridsize;
 
 	for (int rowOff = -1; rowOff <= 1; rowOff++)
 	{
@@ -254,12 +325,37 @@ void MainWindow::Timer(wxTimerEvent& event) {
 	event.Skip();
 }
 
+void MainWindow::RandomizeMatrix() {
+	srand(time(NULL));
+
+	for (int i = 0; i < matrix.size(); i++)
+	{
+		for (int j = 0; j < matrix[i].size(); j++)
+		{
+			int num = rand();
+			if (num % 2 == 0)
+			{
+				matrix[i][j] = true;
+			}
+			else
+			{
+				matrix[i][j] = false;
+			}
+
+		}
+
+	}
+
+}
+
 MainWindow::~MainWindow() {
 	delete settings;
 	delete _timer;
-	//delete boxSize;
+	//delete boxSize; Causes error on close?
 	delete draw;
 	delete _finite;
 	delete _toroidal;
+	delete sts;
+
 }
 

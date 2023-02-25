@@ -35,10 +35,13 @@ public:
 	void OnSaveClick(wxCommandEvent& event);
 	void OnLoadClick(wxCommandEvent& event);
 	void OnPlayClick(wxCommandEvent& event);
+	void OnSetClick(wxCommandEvent& event);
+	void OnRandomClick(wxCommandEvent& event);
 	void OnNextClick(wxCommandEvent& event);
 	void OnPauseClick(wxCommandEvent& event);
 	void OnTrashClick(wxCommandEvent& event);
 	void Timer(wxTimerEvent& event);
+	void RandomizeMatrix();
 
 
 	wxDECLARE_EVENT_TABLE();

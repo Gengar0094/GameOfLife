@@ -44,5 +44,19 @@
     <ClInclude Include="SettingsUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameOfLife.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="set.xpm" />
+    <None Include="random.xpm" />
+    <None Include="export.xpm" />
+    <None Include="import.xpm" />
   </ItemGroup>
 </Project>

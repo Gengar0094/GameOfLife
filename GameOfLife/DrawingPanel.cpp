@@ -12,6 +12,7 @@ wxEND_EVENT_TABLE()
 
 DrawingPanel::DrawingPanel(wxFrame* ptr, Settings* options) : wxPanel(ptr, wxID_ANY, wxPoint(10, 10), wxSize(20, 20))
 {
+
 	settings = options;
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	this->Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
@@ -52,7 +53,7 @@ void DrawingPanel::OnPaint(wxPaintEvent& evt)
 	float height = window.GetHeight() / (float)settings->s_gridsize;
 
 
-	//True or false determines the square
+	//True or false determines the square color
 	for (int i = 0; i < settings->s_gridsize; i++)
 	{
 		for (int j = 0; j < settings->s_gridsize; j++)
@@ -102,6 +103,9 @@ void DrawingPanel::SetGridSize(int grid) {
 }
 
 DrawingPanel::~DrawingPanel() {
+	//Causes errors
+	//delete Board;
+	//delete settings;
 
 
 }

@@ -140,8 +140,18 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="DrawingPanel.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SettingsUI.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameOfLife.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="export.xpm" />
+    <None Include="import.xpm" />
+    <None Include="random.xpm" />
+    <None Include="set.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
